@@ -1,0 +1,25 @@
+.DS_Store
+
+# Local env and secrets
+.env
+scripts/nginx/vmui_htpasswd
+
+# Python virtual env and caches
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pycache_local/
+
+# Generated TLS artifacts
+scripts/tls/*.crt
+scripts/tls/*.jks
+scripts/tls/*.key
+scripts/tls/*.csr
+scripts/tls/*.srl
+scripts/tls/*.p12
+
+# Local backups and data dumps
+backups/
+*.log

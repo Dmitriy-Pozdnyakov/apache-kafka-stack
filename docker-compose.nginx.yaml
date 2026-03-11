@@ -1,0 +1,51 @@
+services:
+  nginx:
+    image: ${NGINX_IMAGE:-nginx:1.27-alpine}
+    mem_limit: ${NGINX_MEM_LIMIT:-128m}
+    cpus: ${NGINX_CPUS:-0.25}
+    ports:
+      - "${NGINX_PORT:-18080}:80"
+    depends_on:
+      kafka-ui:
+        condition: service_healthy
+      grafana:
+        condition: service_started
+      victoria-metrics:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+      kafka-exporter:
+        condition: service_started
+    volumes:
+      - ./scripts/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./scripts/nginx/index.html:/usr/share/nginx/html/index.html:ro
+      - ./scripts/nginx/vmui_htpasswd:/etc/nginx/vmui_htpasswd:ro
+    restart: unless-stopped
+    networks:
+      - apache_shared_net
+
+  kafka-ui:
+    environment:
+      - SERVER_SERVLET_CONTEXT_PATH=/kafka-ui
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/kafka-ui/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 60s
+    ports: []
+
+  grafana:
+    ports: []
+    environment:
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+
+  victoria-metrics:
+    ports: []
+
+  schema-registry:
+    ports: []
+
+  kafka-exporter:
+    ports: []

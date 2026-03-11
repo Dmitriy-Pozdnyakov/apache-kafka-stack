@@ -1,0 +1,353 @@
+services:
+  kafka-1:
+    image: ${KAFKA_IMAGE:-apache/kafka:4.2.0}
+    mem_limit: ${KAFKA_MEM_LIMIT:-2g}
+    cpus: ${KAFKA_CPUS:-1.50}
+    ports:
+      - "${KAFKA_1_PORT:-19092}:19092"
+    environment:
+      - CLUSTER_ID=${CLUSTER_ID}
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=${KAFKA_CONTROLLER_QUORUM_VOTERS:-1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093}
+      - KAFKA_LISTENERS=INTERNAL://:9092,EXTERNAL://:19092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka-1:9092,EXTERNAL://${PUBLIC_HOST:-localhost}:${KAFKA_1_PORT:-19092}
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:${KAFKA_EXTERNAL_SECURITY_PROTOCOL:-SASL_SSL},CONTROLLER:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_SASL_ENABLED_MECHANISMS=PLAIN
+      - KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS=PLAIN
+      - 'KAFKA_LISTENER_NAME_EXTERNAL_PLAIN_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required user_${KAFKA_SASL_USERNAME:-kafka}="${KAFKA_SASL_PASSWORD:-kafka-pass}";'
+      - KAFKA_SSL_KEYSTORE_LOCATION=/opt/kafka/tls/broker.keystore.jks
+      - KAFKA_SSL_KEYSTORE_PASSWORD=${KAFKA_SSL_KEYSTORE_PASSWORD:-changeit}
+      - KAFKA_SSL_KEY_PASSWORD=${KAFKA_SSL_KEY_PASSWORD:-changeit}
+      - KAFKA_SSL_TRUSTSTORE_LOCATION=/opt/kafka/tls/broker.truststore.jks
+      - KAFKA_SSL_TRUSTSTORE_PASSWORD=${KAFKA_SSL_TRUSTSTORE_PASSWORD:-changeit}
+      - KAFKA_SSL_CLIENT_AUTH=${KAFKA_SSL_CLIENT_AUTH:-none}
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:-3}
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=${KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR:-3}
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=${KAFKA_TRANSACTION_STATE_LOG_MIN_ISR:-2}
+      - KAFKA_MIN_INSYNC_REPLICAS=${KAFKA_MIN_INSYNC_REPLICAS:-2}
+      - KAFKA_NUM_PARTITIONS=${TOPIC_PARTITIONS:-3}
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_HEAP_OPTS=${KAFKA_HEAP_OPTS:--Xms512m -Xmx1024m}
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 18
+      start_period: 60s
+    restart: unless-stopped
+    volumes:
+      - ./scripts:/opt/kafka/scripts
+      - ./scripts/tls:/opt/kafka/tls:ro
+      - kafka_1_data:/var/lib/kafka/data
+    networks:
+      - apache_shared_net
+
+  kafka-2:
+    image: ${KAFKA_IMAGE:-apache/kafka:4.2.0}
+    mem_limit: ${KAFKA_MEM_LIMIT:-2g}
+    cpus: ${KAFKA_CPUS:-1.50}
+    ports:
+      - "${KAFKA_2_PORT:-19093}:19093"
+    environment:
+      - CLUSTER_ID=${CLUSTER_ID}
+      - KAFKA_NODE_ID=2
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=${KAFKA_CONTROLLER_QUORUM_VOTERS:-1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093}
+      - KAFKA_LISTENERS=INTERNAL://:9092,EXTERNAL://:19093,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka-2:9092,EXTERNAL://${PUBLIC_HOST:-localhost}:${KAFKA_2_PORT:-19093}
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:${KAFKA_EXTERNAL_SECURITY_PROTOCOL:-SASL_SSL},CONTROLLER:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_SASL_ENABLED_MECHANISMS=PLAIN
+      - KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS=PLAIN
+      - 'KAFKA_LISTENER_NAME_EXTERNAL_PLAIN_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required user_${KAFKA_SASL_USERNAME:-kafka}="${KAFKA_SASL_PASSWORD:-kafka-pass}";'
+      - KAFKA_SSL_KEYSTORE_LOCATION=/opt/kafka/tls/broker.keystore.jks
+      - KAFKA_SSL_KEYSTORE_PASSWORD=${KAFKA_SSL_KEYSTORE_PASSWORD:-changeit}
+      - KAFKA_SSL_KEY_PASSWORD=${KAFKA_SSL_KEY_PASSWORD:-changeit}
+      - KAFKA_SSL_TRUSTSTORE_LOCATION=/opt/kafka/tls/broker.truststore.jks
+      - KAFKA_SSL_TRUSTSTORE_PASSWORD=${KAFKA_SSL_TRUSTSTORE_PASSWORD:-changeit}
+      - KAFKA_SSL_CLIENT_AUTH=${KAFKA_SSL_CLIENT_AUTH:-none}
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:-3}
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=${KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR:-3}
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=${KAFKA_TRANSACTION_STATE_LOG_MIN_ISR:-2}
+      - KAFKA_MIN_INSYNC_REPLICAS=${KAFKA_MIN_INSYNC_REPLICAS:-2}
+      - KAFKA_NUM_PARTITIONS=${TOPIC_PARTITIONS:-3}
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_HEAP_OPTS=${KAFKA_HEAP_OPTS:--Xms512m -Xmx1024m}
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 18
+      start_period: 60s
+    restart: unless-stopped
+    volumes:
+      - ./scripts:/opt/kafka/scripts
+      - ./scripts/tls:/opt/kafka/tls:ro
+      - kafka_2_data:/var/lib/kafka/data
+    networks:
+      - apache_shared_net
+
+  kafka-3:
+    image: ${KAFKA_IMAGE:-apache/kafka:4.2.0}
+    mem_limit: ${KAFKA_MEM_LIMIT:-2g}
+    cpus: ${KAFKA_CPUS:-1.50}
+    ports:
+      - "${KAFKA_3_PORT:-19094}:19094"
+    environment:
+      - CLUSTER_ID=${CLUSTER_ID}
+      - KAFKA_NODE_ID=3
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=${KAFKA_CONTROLLER_QUORUM_VOTERS:-1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093}
+      - KAFKA_LISTENERS=INTERNAL://:9092,EXTERNAL://:19094,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka-3:9092,EXTERNAL://${PUBLIC_HOST:-localhost}:${KAFKA_3_PORT:-19094}
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:${KAFKA_EXTERNAL_SECURITY_PROTOCOL:-SASL_SSL},CONTROLLER:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_SASL_ENABLED_MECHANISMS=PLAIN
+      - KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS=PLAIN
+      - 'KAFKA_LISTENER_NAME_EXTERNAL_PLAIN_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required user_${KAFKA_SASL_USERNAME:-kafka}="${KAFKA_SASL_PASSWORD:-kafka-pass}";'
+      - KAFKA_SSL_KEYSTORE_LOCATION=/opt/kafka/tls/broker.keystore.jks
+      - KAFKA_SSL_KEYSTORE_PASSWORD=${KAFKA_SSL_KEYSTORE_PASSWORD:-changeit}
+      - KAFKA_SSL_KEY_PASSWORD=${KAFKA_SSL_KEY_PASSWORD:-changeit}
+      - KAFKA_SSL_TRUSTSTORE_LOCATION=/opt/kafka/tls/broker.truststore.jks
+      - KAFKA_SSL_TRUSTSTORE_PASSWORD=${KAFKA_SSL_TRUSTSTORE_PASSWORD:-changeit}
+      - KAFKA_SSL_CLIENT_AUTH=${KAFKA_SSL_CLIENT_AUTH:-none}
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:-3}
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=${KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR:-3}
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=${KAFKA_TRANSACTION_STATE_LOG_MIN_ISR:-2}
+      - KAFKA_MIN_INSYNC_REPLICAS=${KAFKA_MIN_INSYNC_REPLICAS:-2}
+      - KAFKA_NUM_PARTITIONS=${TOPIC_PARTITIONS:-3}
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_HEAP_OPTS=${KAFKA_HEAP_OPTS:--Xms512m -Xmx1024m}
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 18
+      start_period: 60s
+    restart: unless-stopped
+    volumes:
+      - ./scripts:/opt/kafka/scripts
+      - ./scripts/tls:/opt/kafka/tls:ro
+      - kafka_3_data:/var/lib/kafka/data
+    networks:
+      - apache_shared_net
+
+  kafka-init:
+    image: ${KAFKA_IMAGE:-apache/kafka:4.2.0}
+    mem_limit: ${KAFKA_INIT_MEM_LIMIT:-256m}
+    cpus: ${KAFKA_INIT_CPUS:-0.25}
+    environment:
+      - BROKER=${BOOTSTRAP_BROKER:-kafka-1:9092}
+      - TOPIC=${TOPIC:-transactions}
+      - RETRY_TOPIC=${RETRY_TOPIC:-transactions.retry}
+      - DLQ_TOPIC=${DLQ_TOPIC:-transactions.dlq}
+      - TOPIC_PARTITIONS=${TOPIC_PARTITIONS:-3}
+      - TOPIC_REPLICATION_FACTOR=${TOPIC_REPLICATION_FACTOR:-3}
+      - KAFKA_INIT_WAIT_TIMEOUT_SEC=${KAFKA_INIT_WAIT_TIMEOUT_SEC:-180}
+      - TOPIC_RETENTION_MS=${TOPIC_RETENTION_MS:-604800000}
+      - TOPIC_CLEANUP_POLICY=${TOPIC_CLEANUP_POLICY:-delete}
+      - RETRY_TOPIC_RETENTION_MS=${RETRY_TOPIC_RETENTION_MS:-86400000}
+      - RETRY_TOPIC_CLEANUP_POLICY=${RETRY_TOPIC_CLEANUP_POLICY:-delete}
+      - DLQ_TOPIC_RETENTION_MS=${DLQ_TOPIC_RETENTION_MS:-1209600000}
+      - DLQ_TOPIC_CLEANUP_POLICY=${DLQ_TOPIC_CLEANUP_POLICY:-delete}
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/opt/kafka/scripts
+    entrypoint: ["/bin/bash", "-ec"]
+    command: "/opt/kafka/scripts/init-topics.sh"
+    restart: "no"
+    networks:
+      - apache_shared_net
+
+  worker:
+    image: ${KAFKA_IMAGE:-apache/kafka:4.2.0}
+    mem_limit: ${WORKER_MEM_LIMIT:-512m}
+    cpus: ${WORKER_CPUS:-0.50}
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      - BROKER=${BROKER:-kafka-1:9092,kafka-2:9092,kafka-3:9092}
+      - TOPIC=${TOPIC:-transactions}
+      - GROUP_ID=${GROUP_ID:-transactions-workers}
+    volumes:
+      - ./scripts:/opt/kafka/scripts
+    entrypoint: ["/bin/bash", "-ec"]
+    command: "/opt/kafka/scripts/consume.sh $$HOSTNAME"
+    restart: unless-stopped
+    networks:
+      - apache_shared_net
+
+  schema-registry:
+    image: ${SCHEMA_REGISTRY_IMAGE:-confluentinc/cp-schema-registry:7.7.1}
+    mem_limit: ${SCHEMA_REGISTRY_MEM_LIMIT:-512m}
+    cpus: ${SCHEMA_REGISTRY_CPUS:-0.50}
+    ports:
+      - "${SCHEMA_REGISTRY_PORT:-18081}:8081"
+    environment:
+      - SCHEMA_REGISTRY_HOST_NAME=schema-registry
+      - SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081
+      - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=${BROKER:-kafka-1:9092,kafka-2:9092,kafka-3:9092}
+      - SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL=PLAINTEXT
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8081/subjects >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - apache_shared_net
+
+  kafka-ui:
+    image: ${KAFKA_UI_IMAGE:-provectuslabs/kafka-ui:v0.7.2}
+    mem_limit: ${KAFKA_UI_MEM_LIMIT:-512m}
+    cpus: ${KAFKA_UI_CPUS:-0.50}
+    ports:
+      - "${KAFKA_UI_PORT:-18085}:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=apache-local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=${BROKER:-kafka-1:9092,kafka-2:9092,kafka-3:9092}
+      - KAFKA_CLUSTERS_0_SCHEMAREGISTRY=http://schema-registry:8081
+      - AUTH_TYPE=${KAFKA_UI_AUTH_TYPE:-LOGIN_FORM}
+      - SPRING_SECURITY_USER_NAME=${KAFKA_UI_USER:-admin}
+      - SPRING_SECURITY_USER_PASSWORD=${KAFKA_UI_PASSWORD:-admin}
+      - JAVA_OPTS=${KAFKA_UI_JAVA_OPTS:--Xms128m -Xmx256m}
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - apache_shared_net
+
+  kafka-exporter:
+    image: ${KAFKA_EXPORTER_IMAGE:-danielqsj/kafka-exporter:v1.8.0}
+    mem_limit: ${KAFKA_EXPORTER_MEM_LIMIT:-256m}
+    cpus: ${KAFKA_EXPORTER_CPUS:-0.25}
+    command:
+      - --kafka.server=kafka-1:9092
+      - --kafka.server=kafka-2:9092
+      - --kafka.server=kafka-3:9092
+    ports:
+      - "${KAFKA_EXPORTER_PORT:-19308}:9308"
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - apache_shared_net
+
+  victoria-metrics:
+    image: ${VICTORIAMETRICS_IMAGE:-victoriametrics/victoria-metrics:v1.117.1}
+    mem_limit: ${VICTORIAMETRICS_MEM_LIMIT:-512m}
+    cpus: ${VICTORIAMETRICS_CPUS:-0.50}
+    command:
+      - --storageDataPath=/victoria-metrics-data
+      - --retentionPeriod=${VICTORIAMETRICS_RETENTION:-30d}
+    ports:
+      - "${VICTORIAMETRICS_PORT:-18428}:8428"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8428/health >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    volumes:
+      - victoria_metrics_data:/victoria-metrics-data
+    networks:
+      - apache_shared_net
+
+  vmagent:
+    image: ${VMAGENT_IMAGE:-victoriametrics/vmagent:v1.117.1}
+    mem_limit: ${VMAGENT_MEM_LIMIT:-256m}
+    cpus: ${VMAGENT_CPUS:-0.25}
+    command:
+      - -promscrape.config=/etc/vmagent/prometheus.yml
+      - -remoteWrite.url=http://victoria-metrics:8428/api/v1/write
+    depends_on:
+      kafka-exporter:
+        condition: service_started
+      victoria-metrics:
+        condition: service_healthy
+    volumes:
+      - ./scripts/monitoring/vmagent-prometheus.yml:/etc/vmagent/prometheus.yml:ro
+    restart: unless-stopped
+    networks:
+      - apache_shared_net
+
+  grafana:
+    image: ${GRAFANA_IMAGE:-grafana/grafana:11.1.4}
+    mem_limit: ${GRAFANA_MEM_LIMIT:-512m}
+    cpus: ${GRAFANA_CPUS:-0.50}
+    ports:
+      - "${GRAFANA_PORT:-13000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_AUTH_ANONYMOUS_ENABLED=${GRAFANA_ANONYMOUS_ENABLED:-true}
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=${GRAFANA_ANONYMOUS_ORG_ROLE:-Admin}
+      - GF_AUTH_DISABLE_LOGIN_FORM=${GRAFANA_DISABLE_LOGIN_FORM:-true}
+      - GF_USERS_ALLOW_SIGN_UP=${GRAFANA_USERS_ALLOW_SIGN_UP:-false}
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=${GRAFANA_HOME_DASHBOARD_PATH:-/var/lib/grafana/dashboards/kafka-overview.json}
+    depends_on:
+      victoria-metrics:
+        condition: service_healthy
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./scripts/monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./scripts/monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./scripts/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    restart: unless-stopped
+    networks:
+      - apache_shared_net
+
+networks:
+  apache_shared_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${APACHE_SHARED_NET_SUBNET:-172.31.0.0/24}
+          gateway: ${APACHE_SHARED_NET_GATEWAY:-172.31.0.1}
+
+volumes:
+  kafka_1_data:
+  kafka_2_data:
+  kafka_3_data:
+  victoria_metrics_data:
+  grafana_data:

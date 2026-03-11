@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kafka Stack Services</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f4f6fb;
+        color: #101828;
+      }
+      .wrap {
+        max-width: 760px;
+        margin: 48px auto;
+        padding: 0 16px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+      p {
+        margin: 0 0 20px;
+        color: #475467;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e4e7ec;
+        border-radius: 12px;
+        padding: 12px;
+      }
+      a {
+        display: block;
+        text-decoration: none;
+        color: #0b63f6;
+        padding: 10px 12px;
+        border-radius: 8px;
+      }
+      a:hover {
+        background: #eff4ff;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>Kafka Stack</h1>
+      <p>Выберите сервис для перехода:</p>
+      <section class="card">
+        <a href="/kafka-ui/">Kafka UI</a>
+        <a href="/grafana/">Grafana</a>
+        <a href="/vmui/">VictoriaMetrics UI</a>
+        <a href="/schema-registry/">Schema Registry API</a>
+        <a href="/kafka-exporter/metrics">Kafka Exporter Metrics</a>
+      </section>
+    </main>
+  </body>
+</html>

@@ -21,18 +21,22 @@ PUBLIC_HOST=10.20.30.40
 
 ## Запуск
 
-Из корня `apache-kafka-stack`:
+Из корня `apache-kafka-stack` (рекомендуется):
 
 ```bash
-set -a; source .env; set +a
 ./scripts/tls/generate-kafka-tls.sh
 ```
 
-Или явно:
+Скрипт автоматически возьмёт `PUBLIC_HOST` из `.env`.
+
+Явный override (если нужно временно использовать другой IP):
 
 ```bash
 PUBLIC_HOST=10.20.30.40 ./scripts/tls/generate-kafka-tls.sh
 ```
+
+Примечание: не используй `source .env` для этого шага, потому что в `.env` есть значения с пробелами
+(например `KAFKA_HEAP_OPTS`), и shell может выдать `command not found`.
 
 ## Применение к Kafka
 

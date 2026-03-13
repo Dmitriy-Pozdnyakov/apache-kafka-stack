@@ -13,6 +13,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Каталог, куда складываем итоговые TLS-артефакты.
 # По умолчанию: папка скрипта (`scripts/tls`).
 OUT_DIR="${OUT_DIR:-$SCRIPT_DIR}"
+PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+PROJECT_ENV_FILE="${PROJECT_ENV_FILE:-$PROJECT_ROOT/.env}"
 
 # PUBLIC_HOST обязателен и должен быть IPv4.
 # Этот IP добавляется в SAN сертификата брокера как IP.2.
@@ -34,8 +36,20 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 # PUBLIC_HOST обязателен.
+# Если переменная не передана явно, пробуем взять её из .env проекта.
+if [[ -z "$PUBLIC_HOST" ]]; then
+  if [[ -f "$PROJECT_ENV_FILE" ]]; then
+    PUBLIC_HOST="$(
+      awk -F= '/^[[:space:]]*PUBLIC_HOST=/{print $2}' "$PROJECT_ENV_FILE" \
+        | tail -n1 \
+        | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+    )"
+  fi
+fi
+
 if [[ -z "$PUBLIC_HOST" ]]; then
   echo "[tls] error: PUBLIC_HOST is required and must be IPv4 address" >&2
+  echo "[tls] tried env file: $PROJECT_ENV_FILE" >&2
   echo "[tls] example: PUBLIC_HOST=10.20.30.40 ./scripts/tls/generate-kafka-tls.sh" >&2
   exit 1
 fi

@@ -12,7 +12,7 @@
 
 ```bash
 cp .env.example .env
-VMUI_PASSWORD='change_me_vmui_password' ./scripts/nginx/generate-vmui-htpasswd.sh
+./scripts/nginx/generate-vmui-htpasswd.sh
 PUBLIC_HOST=127.0.0.1 ./scripts/tls/generate-kafka-tls.sh
 ```
 
@@ -129,7 +129,7 @@ docker compose up -d --force-recreate kafka-1 kafka-2 kafka-3
   - логин/пароль: `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`
 - в режиме nginx:
   - basic auth включен только для `VMUI` (`/vmui/`)
-  - логин/пароль задается локально через `VMUI_PASSWORD` и `scripts/nginx/generate-vmui-htpasswd.sh`
+  - логин/пароль берутся из `.env` (`VMUI_USER` / `VMUI_PASSWORD`) и генерируются в `scripts/nginx/vmui_htpasswd` через `scripts/nginx/generate-vmui-htpasswd.sh`
 
 ## Работа с сообщениями
 

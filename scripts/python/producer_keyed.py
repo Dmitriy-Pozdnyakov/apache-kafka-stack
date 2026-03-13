@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from kafka import KafkaProducer
 
-BROKER = os.getenv("BROKER", "localhost:19092,localhost:19093,localhost:19094")
+BROKER = os.getenv("BROKER", "127.0.0.1:19092,127.0.0.1:19093,127.0.0.1:19094")
 TOPIC = os.getenv("TOPIC", "transactions")
 KAFKA_SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
 SSL_CAFILE = os.getenv("SSL_CAFILE", "")

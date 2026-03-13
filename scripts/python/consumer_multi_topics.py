@@ -5,7 +5,7 @@ from typing import List
 
 from kafka import KafkaConsumer
 
-BROKER = os.getenv("BROKER", "localhost:19092,localhost:19093,localhost:19094")
+BROKER = os.getenv("BROKER", "127.0.0.1:19092,127.0.0.1:19093,127.0.0.1:19094")
 TOPICS = os.getenv("TOPICS", "transactions,transactions.retry,transactions.dlq")
 GROUP_ID = os.getenv("GROUP_ID", "transactions-workers")
 AUTO_OFFSET_RESET = os.getenv("AUTO_OFFSET_RESET", "earliest")

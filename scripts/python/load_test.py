@@ -9,7 +9,7 @@ from typing import Dict, Set
 
 from kafka import KafkaConsumer, KafkaProducer
 
-DEFAULT_BROKER = "localhost:19092,localhost:19093,localhost:19094"
+DEFAULT_BROKER = "127.0.0.1:19092,127.0.0.1:19093,127.0.0.1:19094"
 DEFAULT_TOPIC = "transactions"
 DEFAULT_SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
 DEFAULT_SSL_CAFILE = os.getenv("SSL_CAFILE", "")

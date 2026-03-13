@@ -13,7 +13,7 @@
 ```bash
 cp .env.example .env
 VMUI_PASSWORD='change_me_vmui_password' ./scripts/nginx/generate-vmui-htpasswd.sh
-PUBLIC_HOST=localhost ./scripts/tls/generate-kafka-tls.sh
+PUBLIC_HOST=127.0.0.1 ./scripts/tls/generate-kafka-tls.sh
 ```
 
 ## Что разворачивается
@@ -36,7 +36,14 @@ PUBLIC_HOST=localhost ./scripts/tls/generate-kafka-tls.sh
 Перед первым запуском (если `KAFKA_EXTERNAL_SECURITY_PROTOCOL` включает `SSL`) сгенерируй TLS-файлы:
 
 ```bash
-PUBLIC_HOST=localhost ./scripts/tls/generate-kafka-tls.sh
+PUBLIC_HOST=127.0.0.1 ./scripts/tls/generate-kafka-tls.sh
+```
+
+Или взять `PUBLIC_HOST` из `.env`:
+
+```bash
+set -a; source .env; set +a
+./scripts/tls/generate-kafka-tls.sh
 ```
 
 1. Без nginx (прямой доступ к сервисам):
@@ -92,7 +99,7 @@ docker compose down
 ## Ключевые параметры `.env`
 
 - `BROKER=kafka-1:9092,kafka-2:9092,kafka-3:9092`
-- `PUBLIC_HOST=localhost` (для удаленных клиентов Kafka: FQDN/IP вашей ВМ)
+- `PUBLIC_HOST=127.0.0.1` (или IPv4 адрес вашей ВМ для удалённых клиентов Kafka)
 - `KAFKA_EXTERNAL_SECURITY_PROTOCOL=SASL_SSL` (TLS + логин/пароль для внешнего listener)
 - `KAFKA_SSL_KEYSTORE_PASSWORD`, `KAFKA_SSL_KEY_PASSWORD`, `KAFKA_SSL_TRUSTSTORE_PASSWORD`
 - `KAFKA_SASL_USERNAME`, `KAFKA_SASL_PASSWORD` (логин/пароль Kafka для внешних клиентов)
@@ -103,8 +110,8 @@ docker compose down
 - `KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=2`
 - `KAFKA_MIN_INSYNC_REPLICAS=2`
 
-Нюанс: `PUBLIC_HOST` используется в `KAFKA_ADVERTISED_LISTENERS` для внешних подключений к Kafka.
-Если стек работает на отдельной ВМ, установи `PUBLIC_HOST=<vm-host-or-ip>` и пересоздай брокеры.
+Нюанс: `PUBLIC_HOST` используется в `KAFKA_ADVERTISED_LISTENERS` и в TLS SAN.
+Режим TLS в этом проекте IP-only: указывай только IPv4 (без DNS/FQDN), затем пересоздай сертификаты и брокеры.
 
 ### Пересоздание брокеров после смены PUBLIC_HOST/TLS
 
@@ -164,7 +171,7 @@ python -m pip install -r scripts/python/requirements.txt
 
 ```bash
 python3 scripts/python/load_test.py \
-  --broker localhost:19092,localhost:19093,localhost:19094 \
+  --broker 127.0.0.1:19092,127.0.0.1:19093,127.0.0.1:19094 \
   --topic transactions \
   --group-id load-test \
   --security-protocol SASL_SSL \

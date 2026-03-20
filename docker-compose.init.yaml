@@ -1,0 +1,33 @@
+services:
+  kafka-init:
+    image: ${KAFKA_IMAGE:-apache/kafka:4.2.0}
+    mem_limit: ${KAFKA_INIT_MEM_LIMIT:-256m}
+    cpus: ${KAFKA_INIT_CPUS:-0.25}
+    environment:
+      - BROKER=${BOOTSTRAP_BROKER:-kafka-1:9092}
+      - TOPIC=${TOPIC:-transactions}
+      - RETRY_TOPIC=${RETRY_TOPIC:-transactions.retry}
+      - DLQ_TOPIC=${DLQ_TOPIC:-transactions.dlq}
+      - TOPIC_PARTITIONS=${TOPIC_PARTITIONS:-3}
+      - TOPIC_REPLICATION_FACTOR=${TOPIC_REPLICATION_FACTOR:-3}
+      - KAFKA_INIT_WAIT_TIMEOUT_SEC=${KAFKA_INIT_WAIT_TIMEOUT_SEC:-180}
+      - TOPIC_RETENTION_MS=${TOPIC_RETENTION_MS:-604800000}
+      - TOPIC_CLEANUP_POLICY=${TOPIC_CLEANUP_POLICY:-delete}
+      - RETRY_TOPIC_RETENTION_MS=${RETRY_TOPIC_RETENTION_MS:-86400000}
+      - RETRY_TOPIC_CLEANUP_POLICY=${RETRY_TOPIC_CLEANUP_POLICY:-delete}
+      - DLQ_TOPIC_RETENTION_MS=${DLQ_TOPIC_RETENTION_MS:-1209600000}
+      - DLQ_TOPIC_CLEANUP_POLICY=${DLQ_TOPIC_CLEANUP_POLICY:-delete}
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/opt/kafka/scripts
+    entrypoint: ["/bin/bash", "-ec"]
+    command: "/opt/kafka/scripts/init-topics.sh"
+    restart: "no"
+    networks:
+      - apache_shared_net

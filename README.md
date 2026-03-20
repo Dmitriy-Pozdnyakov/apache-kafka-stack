@@ -19,7 +19,7 @@ PUBLIC_HOST=127.0.0.1 ./scripts/tls/generate-kafka-tls.sh
 ## Что разворачивается
 
 - `kafka-1`, `kafka-2`, `kafka-3` (3-нодовый кластер)
-- `kafka-init` (инициализация топиков)
+- `kafka-init` (инициализация топиков, one-shot через `docker-compose.init.yaml`)
 - `worker` (консюмер, масштабируется)
 - `schema-registry` (хранилище схем Avro/Protobuf/JSON Schema)
 - `kafka-ui` (Web UI)
@@ -49,12 +49,16 @@ set -a; source .env; set +a
 1. Без nginx (прямой доступ к сервисам):
 
 ```bash
+docker compose up -d --scale worker=0
+docker compose -f docker-compose.yaml -f docker-compose.init.yaml run --rm kafka-init
 docker compose up -d --scale worker=3
 ```
 
 2. С nginx (единая точка входа):
 
 ```bash
+docker compose -f docker-compose.yaml -f docker-compose.nginx.yaml up -d --scale worker=0
+docker compose -f docker-compose.yaml -f docker-compose.init.yaml run --rm kafka-init
 docker compose -f docker-compose.yaml -f docker-compose.nginx.yaml up -d --scale worker=3
 ```
 
@@ -69,6 +73,12 @@ docker compose ps
 ```bash
 docker compose down
 ```
+
+Важно для сохранности топиков и схем:
+
+- не использовать `docker compose down -v`;
+- не запускать `docker volume prune` и `docker system prune --volumes`;
+- запускать стек всегда из директории `apache-kafka-stack` с одинаковыми compose-файлами.
 
 ## Порты
 
@@ -98,6 +108,7 @@ docker compose down
 
 ## Ключевые параметры `.env`
 
+- `COMPOSE_PROJECT_NAME=data-platform-kafka` (фиксирует проект и имена volume/network между перезапусками)
 - `BROKER=kafka-1:9092,kafka-2:9092,kafka-3:9092`
 - `PUBLIC_HOST=127.0.0.1` (или IPv4 адрес вашей ВМ для удалённых клиентов Kafka)
 - `KAFKA_EXTERNAL_SECURITY_PROTOCOL=SASL_SSL` (TLS + логин/пароль для внешнего listener)
@@ -155,6 +166,12 @@ docker compose logs -f worker
 3. применяет `replication-factor` и `partitions`;
 4. применяет `retention.ms` и `cleanup.policy`;
 5. печатает `--describe` для проверки.
+
+Запуск one-shot init:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.init.yaml run --rm kafka-init
+```
 
 ## Нагрузочный тест Python
 

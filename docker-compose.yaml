@@ -31,6 +31,8 @@ services:
       - KAFKA_NUM_PARTITIONS=${TOPIC_PARTITIONS:-3}
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=${KAFKA_AUTO_CREATE_TOPICS_ENABLE:-false}
       - KAFKA_HEAP_OPTS=${KAFKA_HEAP_OPTS:--Xms512m -Xmx1024m}
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_METADATA_LOG_DIR=/var/lib/kafka/data
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list >/dev/null 2>&1"]
       interval: 10s
@@ -77,6 +79,8 @@ services:
       - KAFKA_NUM_PARTITIONS=${TOPIC_PARTITIONS:-3}
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=${KAFKA_AUTO_CREATE_TOPICS_ENABLE:-false}
       - KAFKA_HEAP_OPTS=${KAFKA_HEAP_OPTS:--Xms512m -Xmx1024m}
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_METADATA_LOG_DIR=/var/lib/kafka/data
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list >/dev/null 2>&1"]
       interval: 10s
@@ -123,6 +127,8 @@ services:
       - KAFKA_NUM_PARTITIONS=${TOPIC_PARTITIONS:-3}
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=${KAFKA_AUTO_CREATE_TOPICS_ENABLE:-false}
       - KAFKA_HEAP_OPTS=${KAFKA_HEAP_OPTS:--Xms512m -Xmx1024m}
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+      - KAFKA_METADATA_LOG_DIR=/var/lib/kafka/data
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list >/dev/null 2>&1"]
       interval: 10s
@@ -137,24 +143,10 @@ services:
     networks:
       - apache_shared_net
 
-  kafka-init:
+  worker:
     image: ${KAFKA_IMAGE:-apache/kafka:4.2.0}
-    mem_limit: ${KAFKA_INIT_MEM_LIMIT:-256m}
-    cpus: ${KAFKA_INIT_CPUS:-0.25}
-    environment:
-      - BROKER=${BOOTSTRAP_BROKER:-kafka-1:9092}
-      - TOPIC=${TOPIC:-transactions}
-      - RETRY_TOPIC=${RETRY_TOPIC:-transactions.retry}
-      - DLQ_TOPIC=${DLQ_TOPIC:-transactions.dlq}
-      - TOPIC_PARTITIONS=${TOPIC_PARTITIONS:-3}
-      - TOPIC_REPLICATION_FACTOR=${TOPIC_REPLICATION_FACTOR:-3}
-      - KAFKA_INIT_WAIT_TIMEOUT_SEC=${KAFKA_INIT_WAIT_TIMEOUT_SEC:-180}
-      - TOPIC_RETENTION_MS=${TOPIC_RETENTION_MS:-604800000}
-      - TOPIC_CLEANUP_POLICY=${TOPIC_CLEANUP_POLICY:-delete}
-      - RETRY_TOPIC_RETENTION_MS=${RETRY_TOPIC_RETENTION_MS:-86400000}
-      - RETRY_TOPIC_CLEANUP_POLICY=${RETRY_TOPIC_CLEANUP_POLICY:-delete}
-      - DLQ_TOPIC_RETENTION_MS=${DLQ_TOPIC_RETENTION_MS:-1209600000}
-      - DLQ_TOPIC_CLEANUP_POLICY=${DLQ_TOPIC_CLEANUP_POLICY:-delete}
+    mem_limit: ${WORKER_MEM_LIMIT:-512m}
+    cpus: ${WORKER_CPUS:-0.50}
     depends_on:
       kafka-1:
         condition: service_healthy
@@ -162,21 +154,6 @@ services:
         condition: service_healthy
       kafka-3:
         condition: service_healthy
-    volumes:
-      - ./scripts:/opt/kafka/scripts
-    entrypoint: ["/bin/bash", "-ec"]
-    command: "/opt/kafka/scripts/init-topics.sh"
-    restart: "no"
-    networks:
-      - apache_shared_net
-
-  worker:
-    image: ${KAFKA_IMAGE:-apache/kafka:4.2.0}
-    mem_limit: ${WORKER_MEM_LIMIT:-512m}
-    cpus: ${WORKER_CPUS:-0.50}
-    depends_on:
-      kafka-init:
-        condition: service_completed_successfully
     environment:
       - BROKER=${BROKER:-kafka-1:9092,kafka-2:9092,kafka-3:9092}
       - TOPIC=${TOPIC:-transactions}
@@ -347,7 +324,10 @@ networks:
 
 volumes:
   kafka_1_data:
+    name: data-platform-kafka_kafka_1_data
   kafka_2_data:
+    name: data-platform-kafka_kafka_2_data
   kafka_3_data:
+    name: data-platform-kafka_kafka_3_data
   victoria_metrics_data:
   grafana_data:
